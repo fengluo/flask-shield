@@ -6,19 +6,21 @@ from flask.signals import Namespace
 signals = Namespace()
 
 user_loader = signals.signal('user-loader')
+permission_loader = signals.signal('permission-loader')
+permission_saver = signals.signal('permission-saver')
 
 
 class Shield(object):
     def __init__(self, app=None):
         self.permissions = []
         self.user_callback = None
+        self.permission_callback = None
+        self.permission_send = None
 
     def init_app(self, app):
         app.before_request(self._get_current_user)
-        # print g.user
         print 'init_app'
         self.app = app
-        self.db = app.extensions['sqlalchemy']
 
     def _get_current_user(self):
         print 'get current user'
@@ -33,6 +35,14 @@ class Shield(object):
         self.user_callback = callback
         return callback
 
+    def permission_loader(self, callback):
+        self.permission_callback = callback
+        return callback
+
+    def permission_saver(self, send):
+        self.permission_send = send
+        return send
+
     def require_permission(self, permission):
         def decorator(func):
             print 'append action'
@@ -40,10 +50,10 @@ class Shield(object):
 
             def wrappers(*args):
                 print 'require_permission'
-                if not g.user:
-                    abort(401)
-                if permission in g.user.get_perms():
-                    abort(403)
+                # if not g.user:
+                #     abort(401)
+                # if permission in g.user.get_perms():
+                #     abort(403)
                 return func(*args)
             return wrappers
         return decorator
@@ -51,12 +61,10 @@ class Shield(object):
     def register_permissions(self):
         print 'start register'
         for permission in self.permissions:
-            result = self.db.engine.execute(
-                'select * from permission where slug = "%s"' % permission)
-            if result.rowcount == 0:
+            result = self.permission_callback(permission)
+            if not result:
                 print 'register ', permission
-                self.db.engine.execute(
-                    'insert into permission (slug) values ("%s")' % permission)
+                self.permission_send(permission)
 
 
 def login_user(user, remember=False, force=False):
