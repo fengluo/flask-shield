@@ -43,27 +43,27 @@ class Shield(object):
         self.permission_send = send
         return send
 
-    def require_permission(self, permission):
+    def require_permission(self, permissions):
         def decorator(func):
-            print 'append action'
-            self.permissions.append(permission)
+            self.permissions.extend(permissions)
 
-            def wrappers(*args):
-                print 'require_permission'
-                # if not g.user:
-                #     abort(401)
-                # if permission in g.user.get_perms():
-                #     abort(403)
-                return func(*args)
+            def wrappers(*args, **kw):
+                if not g.user:
+                    abort(401)
+                if not set(permissions) & set(g.user.get_perms()):
+                    abort(403)
+                return func(*args, **kw)
             return wrappers
         return decorator
 
     def register_permissions(self):
         print 'start register'
         for permission in self.permissions:
+            # result = self.db.engine.execute("select * from permission where slug = '%s'" % permission)
             result = self.permission_callback(permission)
             if not result:
                 print 'register ', permission
+                # self.db.engine.execute("insert into permission (slug) values ('%s')"%permission)
                 self.permission_send(permission)
 
 
