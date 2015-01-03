@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from functools import partial, wraps
-from flask import g, session, _app_ctx_stack, current_app, abort
+from flask import g, session, abort
 from flask.signals import Namespace
 
 signals = Namespace()
@@ -19,17 +18,14 @@ class Shield(object):
 
     def init_app(self, app):
         app.before_request(self._get_current_user)
-        print 'init_app'
         self.app = app
 
     def _get_current_user(self):
-        print 'get current user'
         user_id = session.get('user_id')
         if user_id is None:
             g.user = None
         else:
             g.user = self.user_callback(user_id)
-            print 'before_request', g.user
 
     def user_loader(self, callback):
         self.user_callback = callback
@@ -57,13 +53,9 @@ class Shield(object):
         return decorator
 
     def register_permissions(self):
-        print 'start register'
         for permission in self.permissions:
-            # result = self.db.engine.execute("select * from permission where slug = '%s'" % permission)
             result = self.permission_callback(permission)
             if not result:
-                print 'register ', permission
-                # self.db.engine.execute("insert into permission (slug) values ('%s')"%permission)
                 self.permission_send(permission)
 
 
