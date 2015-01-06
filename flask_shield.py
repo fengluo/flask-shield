@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from functools import wraps
 from flask import g, session, abort
 from flask.signals import Namespace
 
@@ -7,6 +8,21 @@ signals = Namespace()
 user_loader = signals.signal('user-loader')
 permission_loader = signals.signal('permission-loader')
 permission_saver = signals.signal('permission-saver')
+
+
+class Permission(object):
+    def __init__(self, permissions):
+        self.permissions = permissions
+
+    def __call__(self, f):
+        @wraps(f)
+        def _decorated(*args, **kw):
+            if not g.user:
+                abort(401)
+            if not set(self.permissions) & set(g.user.get_perms()):
+                abort(403)
+            return f(*args, **kw)
+        return _decorated
 
 
 class Shield(object):
@@ -40,17 +56,8 @@ class Shield(object):
         return send
 
     def require_permission(self, permissions):
-        def decorator(func):
-            self.permissions.extend(permissions)
-
-            def wrappers(*args, **kw):
-                if not g.user:
-                    abort(401)
-                if not set(permissions) & set(g.user.get_perms()):
-                    abort(403)
-                func(*args, **kw)
-            return wrappers
-        return decorator
+        self.permissions.extend(permissions)
+        return Permission(permissions)
 
     def register_permissions(self):
         for permission in self.permissions:
