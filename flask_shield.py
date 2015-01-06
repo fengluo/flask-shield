@@ -48,7 +48,7 @@ class Shield(object):
                     abort(401)
                 if not set(permissions) & set(g.user.get_perms()):
                     abort(403)
-                return func(*args, **kw)
+                func(*args, **kw)
             return wrappers
         return decorator
 
