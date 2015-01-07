@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
 from functools import wraps
 from flask import g, session, abort
-from flask.signals import Namespace
-
-signals = Namespace()
-
-user_loader = signals.signal('user-loader')
-permission_loader = signals.signal('permission-loader')
-permission_saver = signals.signal('permission-saver')
 
 
 class Permission(object):
