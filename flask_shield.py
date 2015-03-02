@@ -52,6 +52,13 @@ class Shield(object):
         self.permissions.extend(permissions)
         return Permission(permissions)
 
+    def check_permission(self, permission):
+        if not g.user:
+            abort(401)
+        if permission not in g.user.get_perms():
+            abort(403)
+        return True
+
     def register_permissions(self):
         for permission in self.permissions:
             result = self.permission_callback(permission)
