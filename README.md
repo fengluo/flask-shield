@@ -34,5 +34,6 @@ views.py
 @api.route('/posts/<id>/edit', methods=["POST"])
 @shield.require_permission(['edit', 'advance_edit'])
 def edit(id):
-    pass
+    if shield.check_permission('advance_edit'):
+        return 'advance_edit'
 ```
