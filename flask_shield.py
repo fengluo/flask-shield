@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from functools import wraps
-from flask import g, session, abort
+from flask import g, session, abort, request
 
 
 class Permission(object):
@@ -30,7 +30,13 @@ class Shield(object):
         self.app = app
 
     def _get_current_user(self):
-        user_id = session.get('user_id')
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split('Bearer ')[0]
+            import jwt
+            token_dict = jwt.decode(token, self.app.config['SECRET_KEY'])
+            user_id = token_dict['id']
+        else:
+            user_id = session.get('user_id')
         if user_id is None:
             g.user = None
         else:
