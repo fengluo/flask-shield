@@ -31,9 +31,12 @@ class Shield(object):
 
     def _get_current_user(self):
         if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].split('Bearer ')[0]
+            token = request.headers['Authorization'].split('Bearer ')[1]
             import jwt
-            token_dict = jwt.decode(token, self.app.config['SECRET_KEY'])
+            try:
+                token_dict = jwt.decode(token, self.app.config['SECRET_KEY'])
+            except Exception:
+                abort(401)
             user_id = token_dict['id']
         else:
             user_id = session.get('user_id')
