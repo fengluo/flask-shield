@@ -13,7 +13,7 @@ class Permission(object):
             if not g.user:
                 abort(401)
             if not set(self.permissions) & set(g.user.get_perms()):
-                abort(403)
+                abort(401)
             return f(*args, **kw)
         return _decorated
 
