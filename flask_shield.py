@@ -13,16 +13,19 @@ AUTH_HEADER_NAME = 'Authorization'
 ID_ATTRIBUTE = 'get_id'
 
 
-class Permission(object):
+class PermissionDecorator(object):
     def __init__(self, permissions):
         self.permissions = permissions
 
     def __call__(self, f):
         @wraps(f)
         def _decorated(*args, **kw):
-            if not getattr(g.user, 'is_authenticated'):
+            if getattr(g, 'user') and not getattr(g.user, 'is_authenticated'):
                 abort(401)
-            if not set(self.permissions) & set(getattr(g.user, 'perms', [])):
+            if (self.permissions
+                    and not
+                    set(self.permissions)
+                    & set(getattr(g.user, 'permissions', []))):
                 abort(403)
             return f(*args, **kw)
         return _decorated
@@ -85,7 +88,7 @@ class Shield(object):
         else:
             user_id = decode_cookie(cookie)
             if user_id is not None:
-                session['user_id'] = getattr(user, self.id_attribute)()
+                session['user_id'] = user_id
                 session['_fresh'] = False
             self.reload_user()
 
@@ -121,7 +124,7 @@ class Shield(object):
 
     def require_permission(self, *permissions):
         self.permissions.extend(permissions)
-        return Permission(permissions)
+        return PermissionDecorator(permissions)
 
     def check_permission(self, permission):
         if not g.user:
@@ -132,7 +135,8 @@ class Shield(object):
 
     def register_permissions(self):
         for permission in self.permissions:
-            result = self.permission_callback(permission)
+            # Todo
+            result = self.permission_callback(permission.get_slug())
             if not result:
                 self.permission_send(permission)
 
@@ -154,6 +158,39 @@ def logout_user():
     session['remember'] = 'clear'
     g.user = None
     return True
+
+
+class PermissionMixin(object):
+    def get_slug(self):
+        try:
+            return unicode(self.slug)
+        except AttributeError:
+            raise NotImplementedError(
+                'No `slug` attribute - override `get_slug`')
+
+    def __eq__(self, other):
+        '''
+        Check the equality of two `PermissionMixin` objects using `get_slug`.
+        '''
+        if isinstance(other, PermissionMixin):
+            return self.get_slug() == other.get_slug()
+        return NotImplemented
+
+    def __ne__(self, other):
+        '''
+        Check the inequality of two `PermissionMixin` objects using `get_slug`.
+        '''
+        equal = self.__eq__(other)
+        if equal is NotImplemented:
+            return NotImplemented
+        return not equal
+
+
+# class Permission(PermissionMixin):
+#     def __init__(self, slug, name, description=None):
+#         self.slug = slug  # Todo
+#         self.name = name
+#         self.description = description
 
 
 class UserMixin(object):

@@ -2,7 +2,7 @@
 
 import unittest
 from flask import Flask, request, g, jsonify, abort
-from flask_shield import Shield, login_user, logout_user, UserMixin
+from flask_shield import Shield, login_user, logout_user
 from ._base import Permission, get_permission_by_slug
 from ._base import User, get_user_by_id, get_user_by_name
 
@@ -11,7 +11,8 @@ class CookieCase(unittest.TestCase):
     config = {
         'TESTING': True,
         'DEBUG': True,
-        'SECRET_KEY': 'secret test'
+        'SECRET_KEY': 'secret test',
+        'REMEMBER_COOKIE_NAME': 'shield'
     }
 
     def setUp(self):

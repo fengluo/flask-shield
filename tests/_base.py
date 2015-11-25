@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from flask_shield import UserMixin
+from flask_shield import UserMixin, PermissionMixin
 
 
-class Permission(object):
+class Permission(PermissionMixin):
     def __init__(self, slug, name=None, category=None):
         self.slug = slug
         self.name = name
@@ -16,10 +16,10 @@ def get_permission_by_slug(permissions, slug):
 
 
 class User(UserMixin):
-    def __init__(self, id, name, perms):
+    def __init__(self, id, name, permissions):
         self.id = id
         self.name = name
-        self.perms = perms
+        self.permissions = permissions
 
     @property
     def is_active(self):
