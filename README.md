@@ -28,6 +28,15 @@ __init__.py
         db.session.commit()
 ```
 
+commands.py
+
+```
+class RegisterActionsCommand(Command):
+
+    def run(self):
+        shield.register_permissions()
+```
+
 views.py
 
 ```
