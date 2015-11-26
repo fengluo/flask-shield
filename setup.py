@@ -21,7 +21,7 @@ setup(
     license='MIT',
     author='fengluo',
     author_email='fengluo17@gmail.com',
-    description='User permissions management for Flask',
+    description='Flask-Shield is an extension of Flask for permission management based on RBAC.',
     long_description=__doc__,
     py_modules=['flask_shield'],
     zip_safe=False,
