@@ -2,7 +2,8 @@
 
 import jwt
 import unittest
-from flask import Flask, request, g, jsonify, abort
+import datetime
+from flask import Flask, request, g, jsonify, abort, current_app
 from flask_shield import Shield, login_user, logout_user, UserMixin
 from ._base import Permission, get_permission_by_slug
 from ._base import User, get_user_by_id, get_user_by_name
@@ -72,8 +73,18 @@ class HeaderCase(unittest.TestCase):
             name = request.values.get('name')
             user = get_user_by_name(users, name)
             if user:
-                login_user(user)
-                return str(g.user.id)
+                token = jwt.encode(
+                    {
+                        'id': user.id,
+                        'exp': (
+                            datetime.datetime.utcnow() +
+                            datetime.timedelta(seconds=30))
+                    },
+                    app.config['SECRET_KEY'])
+                return jsonify(
+                    id=user.id,
+                    name=user.name,
+                    token=token)
             else:
                 abort(403)
 

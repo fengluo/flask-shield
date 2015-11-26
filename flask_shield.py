@@ -186,13 +186,6 @@ class PermissionMixin(object):
         return not equal
 
 
-# class Permission(PermissionMixin):
-#     def __init__(self, slug, name, description=None):
-#         self.slug = slug  # Todo
-#         self.name = name
-#         self.description = description
-
-
 class UserMixin(object):
     @property
     def is_active(self):
