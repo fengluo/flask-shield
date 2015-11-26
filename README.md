@@ -2,47 +2,28 @@
 
 Flask-Shield is an extension of Flask for permission management based on RBAC.
 
-extensions.py
+Example:
+
+See **sample** in repository
 
 ```
-from flask.ext.shield import Shield
-shield = Shield()
-```
+# install dependencies
+pip install -r requirements.txt
 
-__init__.py
+# create sqlite db
+python manage.py createdb
 
-```
-    shield.init_app(app)
+# create permissions
+python manage.py register_permissions
 
-    @shield.user_loader
-    def load_user(id):
-        return User.query.get(int(id))
+# create sample users
+# name: foo password: 123 permissions: edit
+# name: boo password: 123 permissions: edit, advance_edit
+python manage.py create_sample_user
 
-    @shield.permission_loader
-    def load_permission(slug):
-        return Permission.query.filter_by(slug=slug).first()
+# run server
+# URL: http://127.0.0.1:5000/login
+python manage.py runserver
 
-    @shield.permission_saver
-    def save_permission(slug):
-        db.session.add(Permission(slug=slug))
-        db.session.commit()
-```
-
-commands.py
-
-```
-class RegisterActionsCommand(Command):
-
-    def run(self):
-        shield.register_permissions()
-```
-
-views.py
-
-```
-@api.route('/posts/<id>/edit', methods=["POST"])
-@shield.require_permission(['edit', 'advance_edit'])
-def edit(id):
-    if shield.check_permission('advance_edit'):
-        return 'advance_edit'
+# You can find different users have different permissions on the path of edit.
 ```
