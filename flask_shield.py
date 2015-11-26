@@ -44,6 +44,8 @@ class Shield(object):
         self.permission_callback = None
         self.permission_send = None
 
+        self.init_app(app)
+
     def init_app(self, app):
         app.before_request(self._load_user)
         self.app = app
