@@ -11,6 +11,7 @@ COOKIE_NAME = 'remember_token'
 COOKIE_DURATION = timedelta(days=365)
 AUTH_HEADER_NAME = 'Authorization'
 ID_ATTRIBUTE = 'get_id'
+PERMS_ATTRIBUTE = 'get_perms'
 
 
 class PermissionDecorator(object):
@@ -25,7 +26,7 @@ class PermissionDecorator(object):
             if (self.permissions
                     and not
                     set(self.permissions)
-                    & set(getattr(g.user, 'permissions', []))):
+                    & set(getattr(g.user, PERMS_ATTRIBUTE)())):
                 abort(403)
             return f(*args, **kw)
         return _decorated
@@ -42,7 +43,6 @@ class Shield(object):
         self.header_send = None
         self.permission_callback = None
         self.permission_send = None
-        self.id_attribute = ID_ATTRIBUTE
 
     def init_app(self, app):
         app.before_request(self._load_user)
@@ -82,7 +82,7 @@ class Shield(object):
         if self.token_callback:
             user = self.token_callback(cookie)
             if user is not None:
-                session['user_id'] = getattr(user, self.id_attribute)()
+                session['user_id'] = getattr(user, ID_ATTRIBUTE)()
                 session['_fresh'] = False
             self.reload_user()
         else:
@@ -128,9 +128,9 @@ class Shield(object):
 
     def check_permission(self, permission):
         if not g.user:
-            abort(401)
-        if permission not in g.user.get_perms():
-            abort(403)
+            return False  # 401
+        if permission not in getattr(g.user, PERMS_ATTRIBUTE)():
+            return False  # 403
         return True
 
     def register_permissions(self):
@@ -185,6 +185,9 @@ class PermissionMixin(object):
             return NotImplemented
         return not equal
 
+    def __hash__(self):
+        return hash(self.get_slug())
+
 
 class UserMixin(object):
     @property
@@ -200,6 +203,13 @@ class UserMixin(object):
             return unicode(self.id)
         except AttributeError:
             raise NotImplementedError('No `id` attribute - override `get_id`')
+
+    def get_perms(self):
+        try:
+            return self.permissions
+        except AttributeError:
+            raise NotImplementedError(
+                'No `permissions` attribute - override `get_perms`')
 
     def __eq__(self, other):
         '''
