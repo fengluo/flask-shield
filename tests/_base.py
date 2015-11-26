@@ -11,8 +11,8 @@ class Permission(PermissionMixin):
 
 
 def get_permission_by_slug(permissions, slug):
-    l = filter(lambda x: x.slug == slug, permissions)
-    return l[0] if len(l) > 0 else None
+    results = filter(lambda x: x.slug == slug, permissions)
+    return results[0] if len(results) > 0 else None
 
 
 class User(UserMixin):
