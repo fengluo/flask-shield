@@ -49,21 +49,21 @@ class Shield(object):
         self.app = app
 
     def reload_user(self, user=None):
-        if user is None:
-            user_id = session.get('user_id')
-            if user_id is None:
-                g.user = self.anonymous_user()
-            else:
-                if self.user_callback is None:
-                    raise Exception(
-                        "No user_loader has been installed")
-                user = self.user_callback(user_id)
-                if user is None:
-                    g.user = self.anonymous_user()
-                else:
-                    g.user = user
-        else:
+        if user is not None:
             g.user = user
+            return
+
+        user_id = session.get('user_id')
+        if user_id is None:
+            g.user = self.anonymous_user()
+            return
+
+        if self.user_callback is None:
+            raise Exception(
+                "No user_loader has been installed")
+
+        user = self.user_callback(user_id)
+        g.user = user if user else self.anonymous_user()
 
     def _load_user(self):
         config = current_app.config
