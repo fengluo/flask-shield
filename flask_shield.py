@@ -15,8 +15,8 @@ PERMS_ATTRIBUTE = 'get_perms'
 
 
 class PermissionDecorator(object):
-    def __init__(self, permissions):
-        self.permissions = permissions
+    def __init__(self, perms):
+        self.permissions = [perm() for perm in perms]
 
     def __call__(self, f):
         @wraps(f)
@@ -35,7 +35,7 @@ class PermissionDecorator(object):
 class Shield(object):
     def __init__(self, app=None):
         self.anonymous_user = AnonymousUserMixin
-        self.permissions = []
+        # self.permissions = []
 
         self.user_callback = None
         self.header_callback = None
@@ -126,20 +126,23 @@ class Shield(object):
         return send
 
     def require_permission(self, *permissions):
-        self.permissions.extend(permissions)
+        # self.permissions.extend(permissions)
         return PermissionDecorator(permissions)
 
-    def check_permission(self, permission):
+    def check_permission(self, perm):
         if not g.user:
             return False  # 401
+        permission = perm()
         if permission not in getattr(g.user, PERMS_ATTRIBUTE)():
             return False  # 403
         return True
 
     def register_permissions(self):
-        for permission in self.permissions:
+        perms = get_all_subclasses(Perm)
+        for perm in perms:
             # Todo
-            result = self.permission_callback(permission.get_slug())
+            permission = perm()
+            result = self.permission_callback(permission.slug)
             if not result:
                 self.permission_send(permission)
 
@@ -252,6 +255,24 @@ class AnonymousUserMixin(object):
         return
 
 
+class PermMetaClass(type):
+    def __new__(cls, name, bases, attrs):
+        if name == 'Perm':
+            return type.__new__(cls, name, bases, attrs)
+        attrs['namespace'] = attrs.get(
+            'namespace', attrs['__module__']).lower()
+        attrs['slug'] = '.'.join([attrs['namespace'], name.lower()])
+        attrs['name'] = attrs.get('name', None)
+        return type.__new__(cls, name, bases, attrs)
+
+
+class Perm(PermissionMixin):
+    __metaclass__ = PermMetaClass
+
+    def __init__(self, **kw):
+        super(Perm, self).__init__(**kw)
+
+
 def encode_cookie(payload):
     '''
     This will encode a ``unicode`` value into a cookie, and sign that cookie
@@ -294,3 +315,14 @@ def _secret_key(key=None):
         key = key.encode('latin1')  # ensure bytes
 
     return key
+
+
+def get_all_subclasses(cls):
+        all_subclasses = []
+
+        for subclass in cls.__subclasses__():
+            all_subclasses.append(subclass)
+            tmp = get_all_subclasses(subclass)
+            all_subclasses.extend(tmp)
+
+        return all_subclasses

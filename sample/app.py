@@ -36,7 +36,8 @@ def create_app():
         return Permission.query.filter_by(slug=slug).first()
 
     @shield.permission_saver
-    def save_permission(permission):
+    def save_permission(perm):
+        permission = Permission(name=perm.name, slug=perm.slug)
         db.session.add(permission)
         db.session.commit()
 

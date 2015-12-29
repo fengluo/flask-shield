@@ -16,7 +16,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Shield',
-    version=0.1,
+    version=0.2,
     url='https://github.com/fengluo/flask-shield',
     license='MIT',
     author='fengluo',

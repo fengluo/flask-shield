@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort, render_template, g
 from flask.ext.shield import login_user
 
 from extensions import shield
-from permissions import edit_perm, advance_edit_perm
+from permissions import EditPerm, AdvanceEditPerm
 from models import User
 
 post = Blueprint('post', __name__)
@@ -23,8 +23,9 @@ def login():
 
 
 @post.route('/edit', methods=["GET"])
-@shield.require_permission(edit_perm, advance_edit_perm)
+@shield.require_permission(EditPerm, AdvanceEditPerm)
 def edit():
-    if shield.check_permission(advance_edit_perm):
+    print g.user.get_perms()
+    if shield.check_permission(AdvanceEditPerm):
         return 'advance_edit'
     return 'edit'
