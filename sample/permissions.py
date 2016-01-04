@@ -6,11 +6,17 @@
 from flask_shield import Perm
 
 
-class EditPerm(Perm):
+class PostPerm(Perm):
+    name = 'Post'
+    slug = 'post'
     namespace = 'post'
+
+
+class EditPerm(PostPerm):
     name = 'Edit'
+    slug = 'edit'
 
 
-class AdvanceEditPerm(Perm):
-    namespace = 'post'
+class AdvanceEditPerm(PostPerm):
     name = 'Advance Edit'
+    slug = 'advance_edit'

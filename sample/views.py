@@ -26,6 +26,7 @@ def login():
 @shield.require_permission(EditPerm, AdvanceEditPerm)
 def edit():
     print g.user.get_perms()
+    print(EditPerm().slug)
     if shield.check_permission(AdvanceEditPerm):
         return 'advance_edit'
     return 'edit'

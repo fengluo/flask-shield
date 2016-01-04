@@ -259,9 +259,13 @@ class PermMetaClass(type):
     def __new__(cls, name, bases, attrs):
         if name == 'Perm':
             return type.__new__(cls, name, bases, attrs)
-        attrs['namespace'] = attrs.get(
-            'namespace', attrs['__module__']).lower()
-        attrs['slug'] = '.'.join([attrs['namespace'], name.lower()])
+        if bases[0].__bases__[0].__name__ == 'Perm':
+            attrs['namespace'] = bases[0].namespace
+        else:
+            attrs['namespace'] = attrs.get(
+                'namespace', attrs['__module__']).lower()
+        slug = attrs.get('slug', name.lower())
+        attrs['slug'] = '.'.join([attrs['namespace'], slug])
         attrs['name'] = attrs.get('name', None)
         return type.__new__(cls, name, bases, attrs)
 
