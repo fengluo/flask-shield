@@ -11,6 +11,9 @@ class Permission(db.Model, PermissionMixin):
     id = db.Column(db.Integer, primary_key=True)
     slug = db.Column(db.String(100))
     name = db.Column(db.String(100))
+    object_type = db.Column(db.String(150))
+    action_type = db.Column(db.String(150))
+    object_id = db.Column(db.Integer)
 
 
 class User(db.Model, UserMixin):

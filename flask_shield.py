@@ -3,6 +3,7 @@ from functools import wraps
 from flask import g, abort, request, session, current_app
 
 from datetime import timedelta
+from collections import namedtuple
 from werkzeug.security import safe_str_cmp
 from hashlib import sha512
 import hmac
@@ -12,6 +13,8 @@ COOKIE_DURATION = timedelta(days=365)
 AUTH_HEADER_NAME = 'Authorization'
 ID_ATTRIBUTE = 'get_id'
 PERMS_ATTRIBUTE = 'get_perms'
+
+Permission = namedtuple('Permission', ['object', 'action', 'object_id'])
 
 
 class PermissionDecorator(object):
@@ -131,9 +134,9 @@ class Shield(object):
 
     def check_permission(self, permission):
         if not g.user:
-            return False  # 401
+            abort(401)
         if permission not in getattr(g.user, PERMS_ATTRIBUTE)():
-            return False  # 403
+            abort(403)
         return True
 
     def register_permissions(self):
